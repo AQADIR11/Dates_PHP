@@ -1,8 +1,7 @@
 <?php
 
-class Controller
+class Controller extends Validator
 {
-    use Validator;
     /**
      * Generates a new token
      * @return [object]   token

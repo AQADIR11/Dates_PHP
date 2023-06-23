@@ -1,6 +1,6 @@
 <?php
 
-trait Validator
+class Validator
 {
     /**
      * Is form valid;
