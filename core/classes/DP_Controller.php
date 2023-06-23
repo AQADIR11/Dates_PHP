@@ -1,5 +1,5 @@
 <?php
-class DP_Controller
+class DP_Controller extends Controller
 {
     public $db;
     public function __construct()
@@ -7,7 +7,11 @@ class DP_Controller
         $this->db = new DP_Database();
     }
 
-    // Call view 
+    /**
+     * Call project views files
+     * @param $viewName [string] view file name
+     * @param $data [Array] Pass data to views file
+     */
     public function view($viewName, array $data = [])
     {
         extract($data);
@@ -19,7 +23,11 @@ class DP_Controller
     }
 
 
-    // Call libraries 
+    /**
+     * Call project third party libraries
+     * @param $libraryName [string] library file name
+     * @return [Object] return library object or show error message
+     */
     public function libraries($libraryName)
     {
         $library = @explode("/", $libraryName);
@@ -32,7 +40,11 @@ class DP_Controller
     }
 
 
-    // Call Model
+    /**
+     * Call project models
+     * @param $modelName [string] model file name
+     * @return [Object] return model object or show error message
+     */
     public function model($modelName)
     {
         $model = @explode("/", $modelName);
@@ -45,7 +57,11 @@ class DP_Controller
     }
 
 
-    // Call GET POST method
+    /**
+     * Get post and get params values
+     * @param $inputName [string] get and post input key
+     * @return [mixed] return get and post input value or array, show the error message
+     */
     public function input($inputName = "")
     {
         if ($inputName != "") {
@@ -77,7 +93,10 @@ class DP_Controller
         return $Rdata;
     }
 
-    // Call Halper
+    /**
+     * Call project helper
+     * @param $helperName [string] helper file name
+     */
     public function helper($helperName)
     {
         if (file_exists(BASE_PATH . "app/helpers/$helperName.php")) {
@@ -87,7 +106,11 @@ class DP_Controller
         }
     }
 
-    // Get Constent items
+    /**
+     * Get project constent values
+     * @param $itemKey [string] constent key
+     * @return [mixed] return constent value or bool false
+     */
     public function constent($itemKey)
     {
         require_once(BASE_PATH . "config/constents.php");
@@ -98,7 +121,12 @@ class DP_Controller
         }
     }
 
-    // Set Session
+    /**
+     * Set session value
+     * @param $sessionName [string] session key
+     * @param $sessionValue [any] session value
+     * @return [bool] return bool false in case session name or session value empty
+     */
     public function setSession($sessionName, $sessionValue)
     {
         if (!empty($sessionName) && !empty($sessionValue)) {
@@ -109,7 +137,11 @@ class DP_Controller
     }
 
 
-    // Get Session
+    /**
+     * get the session value
+     * @param $sessionName [string] session key
+     * @return  [mixed] return session value or array
+     */
     public function getSession($sessionName = "")
     {
         if (!empty($sessionName)) {
@@ -119,7 +151,11 @@ class DP_Controller
         }
     }
 
-    // Unset single session
+    /**
+     * unset the specific session
+     * @param $sessionName [string] session key
+     * @return [bool] return bool true or false
+     */
     public function unsetSession($sessionName)
     {
         if (!empty($sessionName)) {
@@ -131,21 +167,30 @@ class DP_Controller
     }
 
 
-    // Destroy all session
+    /**
+     * End all Session
+     */
     public function endSessions()
     {
         session_unset();
         session_destroy();
     }
 
-    // Redirect Method
+    /**
+     * Redirect the specific url
+     * @param  [string] redirect page 
+     */
     public function redirect($path)
     {
         header("Location:" . BASE_URL . '/' . $path);
     }
 
-    // Get Params Value
-    public function params($index)
+    /**
+     * Get params value from the url
+     * @param  [integer] index number
+     * @return [mixed] return params value or bool false
+     */
+    public function params(int $index)
     {
         $uri = explode('/', $_GET['url']);
         if (isset($uri[$index])) {
@@ -155,26 +200,95 @@ class DP_Controller
         }
     }
 
-    protected static function setNewToken($page, $expiry, int $length)
+
+    /**
+     * Returns a page's token.
+     * - Page name is required so that users can browse to multiple pages and allows for each
+     *   page to have its own unique token
+     *
+     * @param  [string]   page name
+     * @param  [int]      expiry time
+     * @return [mixed]    markup to be used in the ajax, false on data missing
+     */
+    public function get_csrf($page, $expiry = 1800, $length = 10)
     {
-        $token = new \stdClass();
-        $token->page = $page;
-        $token->expiry = date("Y-m-d H:i:s", strtotime("+$expiry minutes"));
-        $token->sessiontoken = base64_encode(self::GenerateSalts($length));
-        $token->cookietoken = md5(base64_encode(mt_rand(10, 100)));
-        return $_SESSION['csrftokens'][$page] = $token;
+        if (empty($page)) {
+            // trigger_error('Page is missing.', E_USER_ERROR); // rm psr
+            return false;
+        }
+
+        $token = (Controller::getSessionToken($page) ? Controller::getSessionToken($page) : Controller::setNewToken($page, $expiry, $length));
+
+        if (time() > (int) $token->expiry) {
+            $token = $this->setNewToken($page, $expiry, $length);
+        }
+
+        return $token->sessiontoken;
+    }
+
+    /**
+     * Verify's a request token against a session token
+     * @param  [string]    page name
+     * @param  [string]    token from the request
+     * @return [bool]      whether the request submission is valid or not
+     */
+    public function verify_csrf($page, $removeToken = false, $requestToken = null)
+    {
+
+        // if the request token has not been passed, check POST
+        $requestToken = ($requestToken ? $requestToken : ($this->input('csrftoken') != "" ? $this->input('csrftoken') : null));
+        if (empty($page)) {
+            // trigger_error('Page alias is missing', E_USER_WARNING); // rm psr
+            return false;
+        } else if (empty($requestToken)) {
+            // trigger_error('Token is missing', E_USER_WARNING); // rm psr
+            return false;
+        }
+
+        $token = self::getSessionToken($page);
+
+        // if the time is greater than the expiry form submission window
+        if (empty($token) || time() > (int) $token->expiry) {
+            self::removeToken($page);
+            return false;
+        }
+
+        // check the hash matches the Session / Cookie
+        $sessionConfirm = Controller::hashEquals($token->sessiontoken, $requestToken);
+        $cookieConfirm =  Controller::hashEquals($token->cookietoken, Controller::getCookieToken($page));
+
+        // remove the token
+        if ($removeToken) {
+            $this->removeToken($page);
+        }
+        if ($sessionConfirm) {
+            return true;
+        }
+
+        return false;
     }
 
 
-    protected static function GenerateSalts(int $length)
+    /**
+     * Get error message
+     *
+     * @param $fieldName
+     * @return mixed|string
+     */
+    public function getError($fieldName)
     {
+        return isset(Validator::$errors[$fieldName]) ? Validator::$errors[$fieldName] : '';
+    }
 
-        $chars = array_merge(range(0, 9), range('a', 'z'), range('A', 'Z'));
-        $stringlength = count($chars);
-        $randomString = '';
-        for ($i = 0; $i < $length; $i++) {
-            $randomString .= $chars[rand(0, $stringlength - 1)];
-        }
-        return $randomString;
+
+    /**
+     * @param array $rules list of rules
+     * @param array $payload list of form parameters
+     * @param array $message list of form custom error message
+     * @return bool Return validation result, same as isValid
+     */
+    public function form_validate(array $rules, array $payload, array $message = [])
+    {
+        return Validator::validate($rules, $payload, $message);
     }
 }

@@ -2,10 +2,10 @@
 class DP_Routes
 {
 
-    public $controller = 'Welcome';
-    public $method     = 'index';
-    public $params     = [];
-    public function __construct()
+    public static $controller = 'Welcome';
+    public static $method     = 'index';
+    public static $params     = [];
+    public static function App()
     {
         $url = self::url();
         if (!empty($url)) {
@@ -20,10 +20,10 @@ class DP_Routes
                 }
             }
             if (file_exists($controllersPath . $url[$j] . '.php')) {
-                $this->controller = $url[$j];
+                self::$controller = $url[$j];
                 unset($url[$j]);
-                require_once $controllersPath . $this->controller . '.php';
-                $this->controller = new $this->controller;
+                require_once $controllersPath . self::$controller . '.php';
+                self::$controller = new self::$controller;
             } else {
                 echo '<div class="alert alert-danger" style="
                             color: #a94442; 
@@ -45,8 +45,8 @@ class DP_Routes
 
 
         if (isset($url[$j + 1]) && !empty($url[$j + 1])) {
-            if (method_exists($this->controller, $url[$j + 1])) {
-                $this->method = $url[$j + 1];
+            if (method_exists(self::$controller, $url[$j + 1])) {
+                self::$method = $url[$j + 1];
                 unset($url[$j + 1]);
             } else {
                 echo '<div class="alert alert-danger" style="
@@ -68,11 +68,11 @@ class DP_Routes
         }
 
         if (isset($url)) {
-            $this->params = $url;
+            self::$params = $url;
         } else {
-            $this->params = [];
+            self::$params = [];
         }
-        call_user_func_array([$this->controller, $this->method], $this->params);
+        call_user_func_array([self::$controller, self::$method], self::$params);
     }
 
     public static function url()
@@ -117,18 +117,3 @@ class DP_Routes
         return $Request;
     }
 }
-
-
-// if (array_key_exists($_GET['url'], $routes)) {
-//     $url = $routes[$_GET['url']];
-//     $url = rtrim($url);
-//     $url = filter_var($url, FILTER_SANITIZE_URL);
-//     $url = explode('/', $url);
-//     $Request = $url;
-// } else if (true) {
-//     $url = $_GET['url'];
-//     $url = rtrim($url);
-//     $url = filter_var($url, FILTER_SANITIZE_URL);
-//     $url = explode('/', $url);
-//     $Request = $url;
-// }

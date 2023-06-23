@@ -97,4 +97,4 @@ spl_autoload_register(function ($className) {
 	include "classes/$className.php";
 });
 
-$urls = new DP_Routes;
+DP_Routes::App();
