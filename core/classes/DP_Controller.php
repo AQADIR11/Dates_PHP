@@ -1,5 +1,5 @@
 <?php
-class DP_Controller extends Controller
+class DP_Controller
 {
     public $db;
     public function __construct()
@@ -33,7 +33,8 @@ class DP_Controller extends Controller
         $library = @explode("/", $libraryName);
         if (file_exists(BASE_PATH . "app/libraries/$libraryName.php")) {
             require_once(BASE_PATH . "app/libraries/$libraryName.php");
-            return new $library[count($library) - 1];
+            $classIndex = count($library) - 1;
+            return new $library[$classIndex];
         } else {
             echo $library[count($library) - 1] . ".php file not found!";
         }
@@ -50,7 +51,8 @@ class DP_Controller extends Controller
         $model = @explode("/", $modelName);
         if (file_exists(BASE_PATH . "app/models/$modelName.php")) {
             require_once(BASE_PATH . "app/models/$modelName.php");
-            return new $model[count($model) - 1];
+            $classIndex = count($model) - 1;
+            return new $model[$classIndex];
         } else {
             echo $model[count($model) - 1] . ".php file not found!";
         }
@@ -210,20 +212,30 @@ class DP_Controller extends Controller
      * @param  [int]      expiry time
      * @return [mixed]    markup to be used in the ajax, false on data missing
      */
-    public function get_csrf($page, $expiry = 1800, $length = 10)
+    public function get_csrf($page, $expiry = 1800, $length = 100)
     {
         if (empty($page)) {
-            // trigger_error('Page is missing.', E_USER_ERROR); // rm psr
+            trigger_error('Page is missing.', E_USER_ERROR); // rm psr
             return false;
         }
 
-        $token = (Controller::getSessionToken($page) ? Controller::getSessionToken($page) : Controller::setNewToken($page, $expiry, $length));
+        $token = (Csrf::getSessionToken($page) ? Csrf::getSessionToken($page) : Csrf::setNewToken($page, $expiry, $length));
 
         if (time() > (int) $token->expiry) {
-            $token = $this->setNewToken($page, $expiry, $length);
+            $token = Csrf::setNewToken($page, $expiry, $length);
         }
 
         return $token->sessiontoken;
+    }
+
+    /**
+     * Returns a input's token.
+     * @return [input]
+     */
+
+    public function csrfInput(){
+        $csrf_input = Csrf::csrf_input();
+        return $csrf_input;
     }
 
     /**
@@ -238,28 +250,28 @@ class DP_Controller extends Controller
         // if the request token has not been passed, check POST
         $requestToken = ($requestToken ? $requestToken : ($this->input('csrftoken') != "" ? $this->input('csrftoken') : null));
         if (empty($page)) {
-            // trigger_error('Page alias is missing', E_USER_WARNING); // rm psr
+            trigger_error('Page alias is missing', E_USER_WARNING); // rm psr
             return false;
         } else if (empty($requestToken)) {
-            // trigger_error('Token is missing', E_USER_WARNING); // rm psr
+            trigger_error('Token is missing', E_USER_WARNING); // rm psr
             return false;
         }
 
-        $token = self::getSessionToken($page);
+        $token = Csrf::getSessionToken($page);
 
         // if the time is greater than the expiry form submission window
         if (empty($token) || time() > (int) $token->expiry) {
-            self::removeToken($page);
+            Csrf::removeToken($page);
             return false;
         }
 
         // check the hash matches the Session / Cookie
-        $sessionConfirm = Controller::hashEquals($token->sessiontoken, $requestToken);
-        $cookieConfirm =  Controller::hashEquals($token->cookietoken, Controller::getCookieToken($page));
+        $sessionConfirm = Csrf::hashEquals($token->sessiontoken, $requestToken);
+        $cookieConfirm =  Csrf::hashEquals($token->cookietoken, Csrf::getCookieToken($page));
 
         // remove the token
         if ($removeToken) {
-            $this->removeToken($page);
+            Csrf::removeToken($page);
         }
         if ($sessionConfirm) {
             return true;
@@ -277,7 +289,7 @@ class DP_Controller extends Controller
      */
     public function getError($fieldName)
     {
-        return isset(Validator::$errors[$fieldName]) ? Validator::$errors[$fieldName] : '';
+        return Validator::get_field_error($fieldName);
     }
 
 

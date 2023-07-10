@@ -1,13 +1,15 @@
 <?php
 
-class Controller extends Validator
+class Csrf
 {
     /**
      * Generates a new token
      * @return [object]   token
-     * @param integer $expiry in secondes
+     * @param string $page where you want token
+     * @param integer $expiry in seconds
+     * @param string $expiry in seconds
      */
-    protected static function setNewToken($page, $expiry, int $length)
+    public static function setNewToken($page, $expiry, int $length = 100)
     {
         $token = new \stdClass();
         $token->page = $page;
@@ -27,7 +29,7 @@ class Controller extends Validator
      * @return string;
      */
 
-    protected static function GenerateSalts(int $length)
+     public static function GenerateSalts(int $length)
     {
 
         $chars = array_merge(range(0, 9), range('a', 'z'), range('A', 'Z'));
@@ -44,7 +46,7 @@ class Controller extends Validator
      * @param  [string]   page name
      * @return [object]   token
      */
-    protected static function getSessionToken($page)
+    public static function getSessionToken($page)
     {
         return !empty($_SESSION["csrftokens"][$page]) ? $_SESSION["csrftokens"][$page] : null;
     }
@@ -56,7 +58,7 @@ class Controller extends Validator
      * @return [string]   token string / empty string
      */
 
-    protected static function getCookieToken($page)
+     public static function getCookieToken($page)
     {
 
         $value = self::makeCookieName($page);
@@ -68,7 +70,7 @@ class Controller extends Validator
      * @param  [string]   page name
      * @return [string]   cookie token name / empty string
      */
-    protected static function makeCookieName($page)
+    public static function makeCookieName($page)
     {
         if (empty($page)) {
             return '';
@@ -77,7 +79,7 @@ class Controller extends Validator
     }
 
 
-    protected static function hashEquals($str1, $str2)
+    public static function hashEquals($str1, $str2)
     {
         if (strlen($str1) != strlen($str2)) {
             return false;
@@ -95,10 +97,10 @@ class Controller extends Validator
 
     /**
      * Removes a token from the session
-     * @param  [string] $page    page name
-     * @return [bool]            successfully removed or not
+     * @param  [string] $page page name
+     * @return [bool] successfully removed or not
      */
-    protected static function removeToken($page)
+    public static function removeToken($page)
     {
 
         if (empty($page)) {
@@ -108,5 +110,22 @@ class Controller extends Validator
         unset($_COOKIE[self::makeCookieName($page)], $_SESSION['csrftokens'][$page]);
 
         return true;
+    }
+
+    /**
+     * Genrate csrf input
+     * @return [input]
+     */
+
+     public static function csrf_input() {
+        $page = $_SERVER['REQUEST_URI'];
+        $expiry = 1800;
+        if (empty($page)) {
+            trigger_error('Page is missing.', E_USER_ERROR); // rm psr
+            return false;
+        }
+        $token = (self::getSessionToken($page) ? self::getSessionToken($page) : self::setNewToken($page, $expiry));
+
+        return '<input type="hidden" id="_csrf_token_" name="_csrf_token_" value="' . $token->sessiontoken . '">';
     }
 }

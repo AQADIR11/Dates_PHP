@@ -48,12 +48,12 @@ class Validator
      *
      * @return bool
      */
-    protected static function isValid(): bool
+    public static function isValid(): bool
     {
         return self::$isValid;
     }
 
-    protected static function validateRequired(array $rule, array $payload, $message)
+    public static function validateRequired(array $rule, array $payload, $message)
     {
         if (
             true === $rule['required']
@@ -68,7 +68,7 @@ class Validator
         return true;
     }
 
-    protected static function validateString($rule, $payload, $message)
+    public static function validateString($rule, $payload, $message)
     {
         if (!preg_match('/<\s?[^\>]*\/?\s?>/i', $payload[$rule['fieldName']])) {
             self::$isValid = false;
@@ -78,7 +78,7 @@ class Validator
         return true;
     }
 
-    protected static function validateEmail($rule, $payload, $message)
+    public static function validateEmail($rule, $payload, $message)
     {
         if (!filter_var($payload[$rule['fieldName']], FILTER_VALIDATE_EMAIL) !== false) {
             self::$isValid = false;
@@ -88,7 +88,7 @@ class Validator
         return true;
     }
 
-    protected static function validateIntger($rule, $payload, $message)
+    public static function validateIntger($rule, $payload, $message)
     {
         if (!is_numeric($payload[$rule['fieldName']])) {
             self::$isValid = false;
@@ -98,7 +98,7 @@ class Validator
         return true;
     }
 
-    protected static function check_min_length($rule, $payload, $message)
+    public static function check_min_length($rule, $payload, $message)
     {
         if (isset($rule['minlength']) && strlen($payload[$rule['fieldName']]) < intval($rule['minlength'])) {
             $num = $rule['minlength'];
@@ -109,7 +109,7 @@ class Validator
         return true;
     }
 
-    protected static function check_max_length($rule, $payload, $message)
+    public static function check_max_length($rule, $payload, $message)
     {
         if (isset($rule['maxlength']) && strlen($payload[$rule['fieldName']]) > intval($rule['maxlength'])) {
             $num = $rule['maxlength'];
@@ -125,7 +125,7 @@ class Validator
      * @param array $message list of form custom error message
      * @return bool Return validation result, same as isValid
      */
-    protected static function validate(array $rules, array $payload, array $message = [])
+    public static function validate(array $rules, array $payload, array $message = [])
     {
         foreach ($rules as $rule) {
             if (!Validator::validateRequired($rule, $payload, $message)) {
@@ -152,5 +152,9 @@ class Validator
             }
         }
         return Validator::isValid();
+    }
+
+    public static function get_field_error($fieldName){
+        return isset(self::$errors[$fieldName]) ? self::$errors[$fieldName] : '';
     }
 }

@@ -12,6 +12,8 @@ class Welcome extends DP_Controller
 
     public function index()
     {
+        print_r($_SESSION);
+        echo $this->verify_csrf("/Dates_PHP/", true, 'QVhkdHIzTTNkSk9KbVVrQ2FHZGZSTkFlUjZheGR4UjdXRGRyR2pZdjdqMkQ0dnpVTWs=');
         $this->view('Welcome');
     }
 
