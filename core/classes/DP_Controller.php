@@ -67,13 +67,13 @@ class DP_Controller
     public function input($inputName = "")
     {
         if ($inputName != "") {
-            if ($_SERVER['REQUEST_METHOD'] == 'POST' || $_SERVER['REQUEST_METHOD'] == 'post') {
+            if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
                 $data = $_POST[$inputName];
                 if (is_array($_POST[$inputName])) {
                     $data = @implode('()', $_POST[$inputName]);
                 }
                 $Rdata = trim(strip_tags($data));
-            } else if ($_SERVER['REQUEST_METHOD'] == 'GET' || $_SERVER['REQUEST_METHOD'] == 'get') {
+            } else if (strtolower($_SERVER['REQUEST_METHOD']) == 'get') {
                 $data = $_GET[$inputName];
                 if (is_array($_GET[$inputName])) {
                     $data = @implode('()', $_GET[$inputName]);
@@ -84,9 +84,9 @@ class DP_Controller
                 return @explode("()", $Rdata);
             }
         } else {
-            if ($_SERVER['REQUEST_METHOD'] == 'POST' || $_SERVER['REQUEST_METHOD'] == 'post') {
+            if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
                 $Rdata = $_POST;
-            } else if ($_SERVER['REQUEST_METHOD'] == 'GET' || $_SERVER['REQUEST_METHOD'] == 'get') {
+            } else if (strtolower($_SERVER['REQUEST_METHOD']) == 'get') {
                 unset($_GET['url']);
                 $Rdata = $_GET;
             }

@@ -14,7 +14,7 @@ class Csrf
         $token = new \stdClass();
         $token->page = $page;
         $token->expiry = time() + $expiry;
-        $token->sessiontoken = base64_encode(self::GenerateSalts($length));
+        $token->sessiontoken = base64_encode((string) self::GenerateSalts($length));
         $token->cookietoken = md5(base64_encode(mt_rand(10, 100)));
         setcookie(self::makeCookieName($page), $token->cookietoken, $token->expiry, '/');
         return $_SESSION['csrftokens'][$page] = $token;
