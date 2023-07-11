@@ -4,12 +4,59 @@ class DP_Database
 {
 
     // Database properties
-    public $host     = HOST;
-    public $driver   = DRIVER;
-    public $user     = USER;
-    public $password = PASSWORD;
-    public $database = DATABASE;
+
+   /**
+     * database hostname;
+     *
+     * @var string
+     */
+
+    private $host     = HOST;
+
+    /**
+     * database driver;
+     *
+     * @var string
+     */
+
+    private $driver   = DRIVER;
+
+    /**
+     * database username;
+     *
+     * @var string
+     */
+
+    private $user     = USER;
+
+    /**
+     * database password;
+     *
+     * @var string
+     */
+
+    private $password = PASSWORD;
+
+    /**
+     * database name;
+     *
+     * @var string
+     */
+
+    private $database = DATABASE;
+
+    /**
+     * database connection object;
+     * @var object
+     */
+
     public $db;
+
+    /**
+     * database global query object;
+     * @var object
+     */
+
     public $result;
 
     public function __construct()
@@ -24,6 +71,14 @@ class DP_Database
         }
     }
 
+    /**
+     * executing the database query
+     * @param string $query string off the query
+     * @param array $params placeholders parameters
+     * @return [bool] return the query executed true or false
+     * 
+     */
+
     public function Query(string $query, array $params = [])
     {
         if (!empty($params)) {
@@ -35,25 +90,58 @@ class DP_Database
         }
     }
 
+     /**
+     * get the executed query number of rows
+     * @return integer number of rows
+     * 
+     */
+
     public function NumRows()
     {
         return $this->result->rowCount();
     }
+
+    /**
+     * get the executed query data
+     * @return [object] data object
+     * 
+     */
 
     public function fetch_object()
     {
         return $this->result->fetchAll(PDO::FETCH_OBJ);
     }
 
+    /**
+     * get the executed query data
+     * @return array data array
+     * 
+     */
+
     public function fetch_array()
     {
         return $this->result->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * get the last inserted data id
+     * @return integer last inserted id
+     * 
+     */
+
     public function last_insert_id()
     {
         return $this->db->lastInsertId();
     }
+
+
+    /**
+     * get the data without query execute
+     * @param string $table name of the table you want to select from
+     * @param string $fields table column
+     * @return bool return the boolean
+     * 
+     */
 
     public function getDataAll(string $table, string $fields = "*")
     {
@@ -61,9 +149,18 @@ class DP_Database
         if ($this->result->execute()) {
             return $this->result->execute();
         } else {
-            return "No data found";
+            return false;
         }
     }
+
+    /**
+     * get the conditional data without query execute
+     * @param string $table name of the table you want to select from
+     * @param array $conditionArray array of where clouse conditions 
+     * @param string $fields names of the column you want select
+     * @return bool return the boolean
+     * 
+     */
 
     public function getData(string $table, array $conditionArray, string $fields = '*')
     {
@@ -84,6 +181,15 @@ class DP_Database
         $this->result = $this->db->prepare("SELECT $fields FROM $table WHERE $placeHolder");
         return $this->result->execute($values);
     }
+
+    /**
+     * Update records without query execute
+     * @param string $table name of the table you want to select from
+     * @param array $dataArray data array which data you want to update
+     * @param array $conditionArray array of where clouse conditions 
+     * @return bool return the boolean
+     * 
+     */
 
     public function updateData(string $table, array $dataArray, array $conditionArray)
     {
@@ -121,6 +227,16 @@ class DP_Database
         return $response;
     }
 
+    /**
+     * Get data from multiple tables using joinQuery mathed
+     * @param string $table name of the table you want to select from
+     * @param string $columns names of the column you want select
+     * @param array $joins Multidimensional array of join tables with join condition and join type
+     * @param array $condition array of where clouse conditions 
+     * @return bool return the boolean
+     * 
+     */
+
     public function joinQuery(string $table, string $columns, array $joins, array $condition = [])
     {
 
@@ -144,6 +260,14 @@ class DP_Database
         }
         return $this->Query($query);
     }
+
+    /**
+     * insert data into table
+     * @param string $table name of the table you want to select from
+     * @param array $dataArray array of data you want to insert data
+     * @return array<object> return the response object with last insert id
+     * 
+     */
 
     public function insertData(string $table, array $dataArray)
     {

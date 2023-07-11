@@ -4,10 +4,10 @@ class Csrf
 {
     /**
      * Generates a new token
-     * @return [object]   token
      * @param string $page where you want token
      * @param integer $expiry in seconds
-     * @param string $expiry in seconds
+     * @param integer $length in number
+     * @return [object]   token
      */
     public static function setNewToken($page, $expiry, int $length = 100)
     {
