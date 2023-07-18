@@ -13,4 +13,6 @@ It should work on 7.4 as well, but we strongly advise you NOT to run such old ve
 
 # Use views
 
+```php
 $this->view("view-name");
+```
