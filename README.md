@@ -11,8 +11,65 @@ Server Requirements
 
 It should work on 7.4 as well, but we strongly advise you NOT to run such old versions of PHP, because of potential security and performance issues, as well as missing features.
 
-# Use views
+# Dates_PHP Basic Methods For Simple Uses
+
+**Use Views**
 
 ```php
 $this->view("view-name");
+```
+
+
+**Use Libraries**
+
+```php
+$this->libraries("library-name");
+```
+
+**Use Model**
+
+```php
+$this->model("model-name");
+```
+
+**Use GET and POST**
+
+```php
+$this->input("input-key");
+```
+
+**Use Helpers**
+
+```php
+$this->helper("helper-name");
+```
+
+**Use Constents**
+
+```php
+$this->constent("constent-key");
+```
+
+**Set Sessions**
+
+```php
+$this->setSession("session-name", "session-value");
+```
+
+**Get Session Value**
+
+```php
+$this->getSession("session-name");
+```
+
+**Remove Spacific Session**
+
+```php
+$this->unsetSession("session-name");
+```
+
+**Remove All Sessions**
+
+```php
+$this->endSessions();
 ```
