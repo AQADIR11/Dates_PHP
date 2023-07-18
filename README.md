@@ -10,3 +10,7 @@ Server Requirements
 # PHP version 7.x or newer is recommended.</h2>
 
 It should work on 7.4 as well, but we strongly advise you NOT to run such old versions of PHP, because of potential security and performance issues, as well as missing features.
+
+# Use views
+
+$this->view("view-name");
