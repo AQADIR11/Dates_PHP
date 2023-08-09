@@ -233,7 +233,8 @@ class DP_Controller
      * @return [input]
      */
 
-    public function csrfInput(){
+    public function csrfInput()
+    {
         $csrf_input = Csrf::csrf_input();
         return $csrf_input;
     }
@@ -302,5 +303,62 @@ class DP_Controller
     public function form_validate(array $rules, array $payload, array $message = [])
     {
         return Validator::validate($rules, $payload, $message);
+    }
+
+    /**
+     * Generate Random String
+     * @param int $length length of Random Generated string
+     */
+    public function generateRandomString($length = 10)
+    {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomString;
+    }
+
+    /**
+     * Get encoded string 
+     * @param string $string you want to encode
+     */
+    public function encode($string)
+    {
+        if (is_numeric($string)) {
+            $str = (string)$string;
+        } else {
+            $str = $string;
+        }
+        $encoded = '';
+        for ($i = 0; $i < strlen($str); $i++) {
+            $encoded .= $this->generateRandomString(10) . $str[$i];
+        }
+        $encoded = json_encode($encoded);
+        $encoded = str_rot13($encoded);
+        $encoded = base64_encode($encoded);
+        return $encoded;
+    }
+
+    /**
+     * Get decoded string 
+     * @param string $string pass encoded string
+     */
+
+    public function decode($string)
+    {
+        $decode = base64_decode($string);
+        $decode = str_rot13($decode);
+        $decode = json_decode($decode);
+        $j = 10;
+        $decoded = '';
+        for ($i = 0; $i <= strlen($decode); $i++) {
+            if ($i == $j) {
+                $decoded .= $decode[$j];
+                $j += 11;
+            }
+        }
+        return $decoded;
     }
 }

@@ -57,7 +57,7 @@ class Validator
     {
         if (
             true === $rule['required']
-            && !isset($payload[$rule['fieldName']])
+            && isset($payload[$rule['fieldName']])
             && empty($payload[$rule['fieldName']])
         ) {
             self::$isValid = false;
@@ -70,7 +70,7 @@ class Validator
 
     public static function validateString($rule, $payload, $message)
     {
-        if (!preg_match('/<\s?[^\>]*\/?\s?>/i', $payload[$rule['fieldName']])) {
+        if (preg_match('/<\s?[^\>]*\/?\s?>/i', $payload[$rule['fieldName']])) {
             self::$isValid = false;
             self::$errors[$rule['fieldName']] = count($message) > 0 ? $message[$rule['fieldName']] : self::$strMsg;
             return false;
@@ -139,22 +139,25 @@ class Validator
             if (!Validator::check_max_length($rule, $payload, $message)) {
                 continue;
             }
-            switch ($rule['type']) {
-                case 'string':
-                    Validator::validateString($rule, $payload, $message);
-                    break;
-                case 'email':
-                    Validator::validateEmail($rule, $payload, $message);
-                    break;
-                case 'number':
-                    Validator::validateIntger($rule, $payload, $message);
-                    break;
+            if (isset($rule['type'])) {
+                switch ($rule['type']) {
+                    case 'string':
+                        Validator::validateString($rule, $payload, $message);
+                        break;
+                    case 'email':
+                        Validator::validateEmail($rule, $payload, $message);
+                        break;
+                    case 'number':
+                        Validator::validateIntger($rule, $payload, $message);
+                        break;
+                }
             }
         }
         return Validator::isValid();
     }
 
-    public static function get_field_error($fieldName){
+    public static function get_field_error($fieldName)
+    {
         return isset(self::$errors[$fieldName]) ? self::$errors[$fieldName] : '';
     }
 }
